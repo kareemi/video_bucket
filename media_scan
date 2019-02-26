@@ -24,9 +24,9 @@ usage = %q(
   @s3 = Aws::S3::Resource.new
 
   def fetch_filenames
-   files = @s3.bucket( @bucket_name ).objects(
-       prefix: "#{@folder_name}"
-     ).collect(&:key)
+    files = @s3.bucket( @bucket_name ).objects(
+      prefix: "#{@folder_name}"
+      ).collect(&:key)
     files.shift
     files.to_json
   end
@@ -40,18 +40,17 @@ usage = %q(
   end
 
   def media_check
-      video_urls
+    video_urls
       @videos.each do |x|
         @data << MediaInfo.from(x)
-    end
+      end
   end
 
   def get_data
     media_check
-    results = @data
-      results.each do |media_info|
-       data_options = media_info.video.inspect
-       puts data_options
+      @data.each do |media_info|
+        data_options = media_info.video.inspect
+      puts data_options
     end
   end
 get_data
