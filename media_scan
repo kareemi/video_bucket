@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+
+require 'mediainfo'
+require 'aws-sdk'
+require "json"
+require 'dotenv'
+
+usage = %q(
+  Usage:
+  media_scan {folder_name}
+  )
+
+  if ARGV.empty? || ARGV[ 0 ] == '--help' || ARGV[ 0 ] == '-h'
+    puts usage
+    exit
+  end
+
+  Dotenv.load
+  @bucket_name = ENV['S3_VIDEO_BUCKET']
+  @bucket_url = ENV['BUCKET_URL']
+  @folder_name = ARGV[0]
+  @videos = []
+  @data = []
+  @s3 = Aws::S3::Resource.new
+
+  def fetch_filenames
+   files = @s3.bucket( @bucket_name ).objects(
+       prefix: "#{@folder_name}"
+     ).collect(&:key)
+    files.shift
+    files.to_json
+  end
+
+  def video_urls
+      filenames = JSON.parse (fetch_filenames)
+      filenames.each do | video_url |
+        @video_url = video_url
+        @videos << "#{ @bucket_url }/#{video_url}"
+    end
+  end
+
+  def media_check
+      video_urls
+      @videos.each do |x|
+        @data << MediaInfo.from(x)
+    end
+  end
+
+  def get_data
+    media_check
+    results = @data
+      results.each do |media_info|
+       data_options = media_info.video.inspect
+       puts data_options
+    end
+  end
+get_data
